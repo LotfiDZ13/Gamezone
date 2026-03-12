@@ -1,32 +1,36 @@
-import json
-import random
-import urllib.request
-import urllib.parse
-import os
+name: Auto Update Activation Code
 
-new_code = str(random.randint(100000, 999999))
-data = {
-    "valid_code": new_code
-}
+on:
+  schedule:
+    # سيتم التشغيل كل 48 ساعة
+    - cron: '0 0 */2 * *'
+  workflow_dispatch:
 
-with open('activation.json', 'w') as f:
-    json.dump(data, f, indent=4)
+jobs:
+  update-code:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
-print(f"Successfully updated activation code to: {new_code}")
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-bot_token = os.environ.get("TELEGRAM_TOKEN")
-chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
-if bot_token and chat_id:
-    message = f"🚨 ZoneStream Security Update:\n\nThe Activation Code has been automatically changed!\n\n🔑 New Code: {new_code}"
-    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    payload = urllib.parse.urlencode({'chat_id': chat_id, 'text': message}).encode('utf-8')
-    
-    try:
-        req = urllib.request.Request(url, data=payload, method='POST')
-        urllib.request.urlopen(req)
-        print("Telegram message sent successfully.")
-    except Exception as e:
-        print(f"Failed to send Telegram message: {e}")
-else:
-    print("Telegram credentials not found in secrets.")
+      - name: Run Python script
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python update_code.py
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add activation.json
+          git commit -m "Auto-update activation code [skip ci]" || echo "No changes to commit"
+          git push
