@@ -1,0 +1,33 @@
+name: Auto Update Activation Code
+
+on:
+  schedule:
+    # هذا الأمر يعني: تشغيل السكريبت كل 48 ساعة (كل يومين عند منتصف الليل)
+    - cron: '0 0 */2 * *'
+  workflow_dispatch: # هذا السطر يسمح لك بتشغيل السكريبت يدوياً بضغطة زر متى شئت
+
+jobs:
+  update-code:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # إعطاء الصلاحية للسكريبت لتعديل الملفات
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Run Python script to generate new code
+        run: python update_code.py
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add activation.json
+          git commit -m "Auto-update activation code [skip ci]" || echo "No changes to commit"
+          git push
