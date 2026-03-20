@@ -2,8 +2,8 @@ name: Auto Update Activation Code
 
 on:
   schedule:
-    - cron: '0 0 */3 * *'
-  workflow_dispatch:
+    - cron: '0 0 */3 * *' # يعمل تلقائياً كل 3 أيام
+  workflow_dispatch:      # يسمح لك بتشغيله يدوياً للتجربة
 
 permissions:
   contents: write
@@ -25,16 +25,21 @@ jobs:
 
       - name: Run Script
         env:
+          # 🟢 تمرير الأسرار من إعدادات جيتهاب إلى السكربت
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
           SHORTENER_API_KEY: ${{ secrets.SHORTENER_API_KEY }}
+          # إذا وضعت GIST_ID في الـ Secrets (أفضل للأمان) فاستخدم السطر التالي:
+          # GIST_ID: ${{ secrets.GIST_ID }} 
         run: python generate_code.py
 
       - name: Commit and Push
         run: |
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
-          # إضافة الملفات فقط في حال وجودها لتجنب الانهيار
-          git add activation.json
-          if [ -f code.txt ]; then git add code.txt; fi
           
-          git commit -m "Update activation code [skip ci]" || echo "No changes to commit"
+          # أضفنا فقط activation.json لأن الكود الحقيقي أصبح في الـ Gist المخفي
+          git add activation.json
+          
+          # لن نرفع ملفات txt هنا لكي لا يراها أحد، سنكتفي بتحديث الـ JSON
+          git commit -m "Update activation hash and link [skip ci]" || echo "No changes to commit"
           git push
