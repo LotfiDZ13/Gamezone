@@ -1,53 +1,39 @@
-import json, random, string, requests, os, hashlib, sys
+import json, random, string, requests, os, hashlib
 
-# 1. توليد الكود وبصمته
+# 1. توليد الكود وبصمته (Hash)
 random_chars = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 new_code = f"ZONE-{random_chars}"
+# تحويل الكود إلى MD5 لكي لا يظهر في ملف الـ JSON
 code_hash = hashlib.md5(new_code.encode()).hexdigest()
 
-# 2. إعدادات جيتهاب
+# 2. تحديث الـ Secret Gist (المخفي)
 GH_TOKEN = os.environ.get("GH_TOKEN")
-GIST_ID = "84b90ede16a82267dcf67e689faf564c"
-
-if not GH_TOKEN or "ضع_هنا" in GIST_ID:
-    print("❌ Error: GH_TOKEN or GIST_ID is missing!")
-    sys.exit(1)
+# يمكنك إنشاء Gist يدوي أولاً ووضع ID الخاص به هنا، أو سيقوم السكربت بإنشاء واحد جديد
+GIST_ID = "84b90ede16a82267dcf67e689faf564c" 
 
 gist_content = f"Your Activation Code is: {new_code}"
-headers = {"Authorization": f"token {GH_TOKEN}", "Accept": "application/vnd.github.v3+json"}
-# سنقوم بتحديث أي ملف موجود في الـ Gist أو إنشاء ملف جديد
+headers = {"Authorization": f"token {GH_TOKEN}"}
 gist_data = {"files": {"activation.txt": {"content": gist_content}}}
 
-print(f"Attempting to update Gist ID: {GIST_ID}...")
-
-try:
-    response = requests.patch(f"https://api.github.com/gists/{GIST_ID}", headers=headers, json=gist_data)
-    
-    if response.status_code == 200:
-        raw_url = response.json()['files']['activation.txt']['raw_url']
-        print(f"✅ Gist updated! Raw URL: {raw_url}")
-    else:
-        print(f"❌ GitHub API Error {response.status_code}: {response.text}")
-        sys.exit(1)
-except Exception as e:
-    print(f"❌ Connection Error: {e}")
-    sys.exit(1)
+print("Updating Secret Gist...")
+response = requests.patch(f"https://api.github.com/gists/{GIST_ID}", headers=headers, json=gist_data)
+raw_url = response.json()['files']['activation.txt']['raw_url']
 
 # 3. اختصار الرابط للربح
 API_KEY = os.environ.get("SHORTENER_API_KEY")
 final_link = raw_url
 if API_KEY:
-    try:
-        short_res = requests.get(f"https://www.shrinkme.io/api?api={API_KEY}&url={raw_url}").json()
-        if short_res.get("status") == "success":
-            final_link = short_res.get("shortenedUrl")
-            print(f"💰 Link Shortened: {final_link}")
-    except:
-        print("⚠️ Shortening failed, using raw URL.")
+    short_res = requests.get(f"https://www.shrinkme.io/api?api={API_KEY}&url={raw_url}").json()
+    if short_res.get("status") == "success":
+        final_link = short_res.get("shortenedUrl")
 
-# 4. تحديث activation.json
-json_data = {"code_hash": code_hash, "download_link": final_link}
+# 4. تحديث activation.json (الذي يراه الناس)
+# لن نضع الكود هنا، بل سنضع الـ Hash فقط!
+json_data = {
+    "code_hash": code_hash,
+    "download_link": final_link
+}
 with open("activation.json", "w") as j:
     json.dump(json_data, j, indent=4)
 
-print("🚀 Script finished successfully!")
+print("🚀 Security System Active & Profitable!")
