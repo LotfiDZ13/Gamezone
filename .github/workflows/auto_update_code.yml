@@ -1,0 +1,37 @@
+name: Auto Update Activation Code
+
+on:
+  schedule:
+    - cron: '0 0 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  update-and-upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install Dependencies
+        run: pip install requests
+
+      - name: Run Code Generator and Upload to Up4ever
+        env:
+          # سحب اسم المستخدم وكلمة المرور من الـ Secrets
+          UP4EVER_USERNAME: ${{ secrets.UP4EVER_USERNAME }}
+          UP4EVER_PASSWORD: ${{ secrets.UP4EVER_PASSWORD }}
+        run: python generate_code.py
+
+      - name: Commit and Push new activation.json
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          git add activation.json
+          git commit -m "Auto-update activation code [skip ci]" || echo "No changes to commit"
+          git push
