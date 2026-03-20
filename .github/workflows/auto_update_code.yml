@@ -5,33 +5,33 @@ on:
     - cron: '0 0 */3 * *'
   workflow_dispatch:
 
-jobs:
-  update-and-upload:
-    runs-on: ubuntu-latest
+permissions:
+  contents: write
 
+jobs:
+  update-and-shorten:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
       - name: Install Dependencies
         run: pip install requests
 
-      - name: Run Code Generator and Upload to Up4ever
+      - name: Run Generator and Shortener
         env:
-          # سحب اسم المستخدم وكلمة المرور من الـ Secrets
-          UP4EVER_USERNAME: ${{ secrets.UP4EVER_USERNAME }}
-          UP4EVER_PASSWORD: ${{ secrets.UP4EVER_PASSWORD }}
+          SHORTENER_API_KEY: ${{ secrets.SHORTENER_API_KEY }}
         run: python generate_code.py
 
-      - name: Commit and Push new activation.json
+      - name: Commit and Push Changes
         run: |
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
-          git add activation.json
-          git commit -m "Auto-update activation code [skip ci]" || echo "No changes to commit"
+          git add activation.json code.txt
+          git commit -m "Update code and link [skip ci]" || echo "No changes"
           git push
