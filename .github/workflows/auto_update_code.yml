@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  update-and-shorten:
+  update:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -23,15 +23,18 @@ jobs:
       - name: Install Dependencies
         run: pip install requests
 
-      - name: Run Generator and Shortener
+      - name: Run Script
         env:
           SHORTENER_API_KEY: ${{ secrets.SHORTENER_API_KEY }}
         run: python generate_code.py
 
-      - name: Commit and Push Changes
+      - name: Commit and Push
         run: |
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
-          git add activation.json code.txt
-          git commit -m "Update code and link [skip ci]" || echo "No changes"
+          # إضافة الملفات فقط في حال وجودها لتجنب الانهيار
+          git add activation.json
+          if [ -f code.txt ]; then git add code.txt; fi
+          
+          git commit -m "Update activation code [skip ci]" || echo "No changes to commit"
           git push
