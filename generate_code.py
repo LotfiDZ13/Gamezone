@@ -7,7 +7,7 @@ code_hash = hashlib.md5(new_code.encode()).hexdigest()
 
 # 2. إعدادات جيتهاب
 GH_TOKEN = os.environ.get("GH_TOKEN")
-GIST_ID = "ضع_هنا_ID_الخاص_بك_فقط" # تأكد أنه الـ ID المكون من حروف وأرقام فقط
+GIST_ID = "84b90ede16a82267dcf67e689faf564c"
 
 if not GH_TOKEN or "ضع_هنا" in GIST_ID:
     print("❌ Error: GH_TOKEN or GIST_ID is missing!")
