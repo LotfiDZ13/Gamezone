@@ -7,7 +7,11 @@ code_hash = hashlib.md5(new_code.encode()).hexdigest()
 
 # 2. إعدادات جيتهاب
 GH_TOKEN = os.environ.get("GH_TOKEN")
-GIST_ID = "84b90ede16a82267dcf67e689faf564c"
+GIST_ID = os.environ.get("GIST_ID")
+
+if not GIST_ID:
+    print("❌ Error: GIST_ID is missing from environment variables!")
+    sys.exit(1)
 
 if not GH_TOKEN or "ضع_هنا" in GIST_ID:
     print("❌ Error: GH_TOKEN or GIST_ID is missing!")
