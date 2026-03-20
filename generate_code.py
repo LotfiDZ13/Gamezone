@@ -3,70 +3,45 @@ import random
 import string
 import requests
 import os
-import sys
 
 # 1. توليد كود عشوائي
 random_chars = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 new_code = f"ZONE-{random_chars}"
 print(f"Generated new code: {new_code}")
 
-file_name = "activation_code.txt"
-with open(file_name, "w", encoding="utf-8") as text_file:
-    text_file.write(f"كود التفعيل الجديد: {new_code}")
+# 2. إنشاء الملف النصي (code.txt) في المجلد الرئيسي
+code_file = "code.txt"
+with open(code_file, "w", encoding="utf-8") as f:
+    f.write(f"Your Activation Code is: {new_code}\n\nEnjoy with ZoneStream!")
 
-# 2. إعدادات الرفع
-USERNAME = os.environ.get("UP4EVER_USERNAME")
-PASSWORD = os.environ.get("UP4EVER_PASSWORD")
-UPLOAD_URL = "https://www.up-4ever.net/cgi-bin/api.cgi"
+# التأكد من وجود الملف لتجنب خطأ Git
+if os.path.exists(code_file):
+    print(f"✅ {code_file} created successfully.")
 
-# 🟢 إضافة Headers لمحاكاة متصفح حقيقي وتخطي Cloudflare
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-    "Accept": "*/*",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Referer": "https://www.up-4ever.net/"
-}
+# 3. اختصار الرابط للربح عبر ShrinkMe
+# استبدل 'LotfiDZ13' و 'Gamezone' ببياناتك الحقيقية
+RAW_URL = f"https://raw.githubusercontent.com/LotfiDZ13/Gamezone/main/code.txt"
+API_KEY = os.environ.get("SHORTENER_API_KEY")
+final_link = RAW_URL 
 
-upload_success = False
-
-if USERNAME and PASSWORD:
-    data = {
-        "op": "upload_api", 
-        "login": USERNAME, 
-        "password": PASSWORD
-    }
-    
+if API_KEY:
+    print("Shortening link via ShrinkMe.io...")
+    api_url = f"https://www.shrinkme.io/api?api={API_KEY}&url={RAW_URL}"
     try:
-        with open(file_name, "rb") as f:
-            files = {"file_0": (file_name, f, "text/plain")}
-            # 🟢 استخدام Session للحفاظ على الكوكيز
-            session = requests.Session()
-            response = session.post(UPLOAD_URL, data=data, files=files, headers=headers, timeout=30)
-            
-            print(f"Status: {response.status_code}")
-            
-            if "file_link" in response.text:
-                # محاولة استخراج الرابط إذا لم يكن JSON صريحاً
-                try:
-                    res_json = response.json()
-                    download_link = res_json[0]['file_link']
-                except:
-                    import re
-                    links = re.findall(r'https?://www.up-4ever.net/[a-zA-Z0-9]+', response.text)
-                    download_link = links[0] if links else "https://t.me/your_channel"
-                
-                print(f"✅ Success! Link: {download_link}")
-                upload_success = True
-            else:
-                print("❌ Cloudflare is still blocking the request.")
-                print("Response Snippet:", response.text[:200])
+        response = requests.get(api_url)
+        res_data = response.json()
+        if res_data.get("status") == "success":
+            final_link = res_data.get("shortenedUrl")
+            print(f"💰 Profitable Link: {final_link}")
+        else:
+            print(f"❌ API Error: {res_data.get('message')}")
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"❌ Connection error: {e}")
 
-# تحديث الملف المحلي (حتى لو فشل الرفع سنحدث الكود في جيتهاب)
-json_data = {"valid_code": new_code, "download_link": "Pending..."}
+# 4. تحديث ملف activation.json
+json_data = {
+    "valid_code": new_code,
+    "download_link": final_link
+}
 with open("activation.json", "w") as j:
     json.dump(json_data, j, indent=4)
-
-# إذا فشل Cloudflare، سنعتبر العملية ناجحة في جيتهاب لنرى الملف، 
-# لكننا سنعرف من السجل إذا تم الرفع أم لا.
