@@ -25,11 +25,9 @@ jobs:
 
       - name: Run Script
         env:
-          # 🟢 تمرير الأسرار من إعدادات جيتهاب إلى السكربت
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           SHORTENER_API_KEY: ${{ secrets.SHORTENER_API_KEY }}
-          # إذا وضعت GIST_ID في الـ Secrets (أفضل للأمان) فاستخدم السطر التالي:
-          # GIST_ID: ${{ secrets.GIST_ID }} 
+          GIST_ID: ${{ secrets.GIST_ID }} # 🟢 أضف هذا السطر تحديداً
         run: python generate_code.py
 
       - name: Commit and Push
