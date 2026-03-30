@@ -1,7 +1,7 @@
 {
-  "latest_version_code": 5,
-  "latest_version_name": "1.4",
-  "release_notes": "تحديث جديد لحل مشكلة توقف الافلام",
+  "latest_version_code": 6,
+  "latest_version_name": "1.5",
+  "release_notes": "تحديث جديد لحل مشكلة توقف القنوات المباشرة",
   "download_url": "https://github.com/LotfiDZ13/Gamezone/releases/download/APP/app-release.apk",
   "is_force_update": true
 }
